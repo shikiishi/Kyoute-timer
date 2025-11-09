@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>共通テスト カウントダウン - NERV EDITION</title>
+    
+    <!-- Tailwind CSSを読み込みます --><script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Google Fonts: Noto Serif JP (Black) と Digital-7 (液晶デジタル風) を読み込みます */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@900&display=swap');
+        @font-face {
+            font-family: 'Digital-7';
+            /* 修正点: 自身のプロジェクトフォルダ内のフォントを参照する相対パスに変更 */
+            src: url('./fonts/digital-7.ttf') format('truetype'); 
+            
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Noto Serif JP', serif; /* 基本フォントはNoto Serif JP Black */
+            scroll-behavior: smooth;
+            background-color: #0d0d0d; /* 暗い背景色 */
+            color: #ff0000; /* 全体の文字色を赤に */
+        }
+        
+        /* タイトル・単位・メッセージ・数字に共通のスタイル */
+        .evangelion-text {
+            color: #ff0000; /* 赤色 */
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.7), 0 0 10px rgba(255, 0, 0, 0.5); /* 発光エフェクト */
+        }
+
+        /* タイトル文字の特殊スタイル */
+        #main-title {
+            letter-spacing: -0.1em; /* 文字間隔を狭く */
+            transform: scaleY(1.3); /* 縦に1.3倍歪ませる */
+            display: inline-block; /* transformを適用するために必要 */
+            transform-origin: bottom; /* 歪みの基準を下に設定 */
+        }
+
+        /* カウントダウン数字部分 (液晶デジタル風) */
+        .countdown-number {
+            font-family: 'Digital-7', sans-serif;
+            font-weight: normal; /* Digital-7フォント自体に太さがないため */
+            font-style: italic;
+            font-feature-settings: "tnum"; /* 等幅数字 */
+            
+            /* カウントダウン数字全体のスタイル調整: 文字間隔と歪み */
+            letter-spacing: 0.1em; 
+            transform: scaleY(1.1); 
+            display: inline-block; 
+            transform-origin: bottom; 
+        }
+
+        /* 単位の文字スタイル */
+        .countdown-unit {
+            font-family: 'Noto Serif JP', serif;
+            font-weight: 900; /* 太めの明朝体 */
+        }
+
+        /* 日程表のタイトルを黄色に */
+        .schedule-title {
+            color: #ffff00; /* 黄色 */
+            font-family: 'Noto Serif JP', serif;
+            font-weight: 900;
+        }
+
+        /* プルダウンの開閉マーカーの色を黄色に */
+        .open-marker {
+            color: #ffff00 !important; /* !important で強制的に適用 */
+        }
+
+        /* メッセージ (テスト当日です！) の色を黄色に */
+        #message {
+            color: #ffff00;
+            font-family: 'Noto Serif JP', serif;
+            
+            font-weight: 900;
+            text-shadow: 0 0 5px rgba(255, 255, 0, 0.7), 0 0 10px rgba(255, 255, 0, 0.5); /* 黄色の発光エフェクト */
+        }
+
+        /* 全体コンテナの背景色と枠線 */
+        .bg-gray-800 {
+            background-color: #1a1a1a; /* より暗い背景 */
+            border-color: #333333; /* 暗い枠線 */
+        }
+        /* メインカウントダウンの背景色と赤い輪郭 */
+        #countdown-primary-container {
+            background-color: rgba(10, 10, 10, 1); /* 透過なし */
+            border: 3px solid #ff0000; /* 赤い輪郭 */
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7); /* 赤い発光シャドウ */
+        }
+
+        /* 日数と時分秒の間の仕切り線 (発光のみ) */
+        #time-display {
+            border-top: 2px solid #ff0000; /* 赤い線 */
+            box-shadow: 0 -3px 8px rgba(255, 0, 0, 0.4); /* 上方向に発光 */
+            padding-top: 0.35rem; /* 余白を狭く */
+        }
+
+        /* 時分秒と週数の間の仕切り線 (発光のみ) */
+        #weeks-display-wrapper {
+            border-top: 2px solid #ff0000; /* 赤い線 */
+            box-shadow: 0 0px 8px rgba(255, 0, 0, 0.4); /* 上方向に発光 */
+            padding-top: 0.35rem; /* 上下の余白を狭く */
+            margin-top: 0.75rem; /* 上下の余白を狭く */
+        }
+
+        /* detailsの背景と枠線 */
+        details {
+            background-color: #1a1a1a;
+            border-color: #ffff00; /* 黄色の枠線 */
+            border-width: 1px;
+            border-radius: 0; /* 角を丸めない */
+        }
+        details summary {
+            background-color: #222222; /* hover時も暗めに */
+            color: #ff0000; /* 概要部分の文字色を赤に */
+            border-radius: 0;
+        }
+        details summary:hover {
+            background-color: #333333; /* hover時を少し明るく */
+        }
+        details div {
+            border-top-width: 0; 
+            padding: 1rem;
+        }
+
+        /* テーブルの背景と枠線 */
+        table {
+            border-color: #ffff00; /* 黄色の枠線 */
+            width: 100%;
+            border-collapse: collapse; /* 枠線を重ねて表示 */
+        }
+        th, td {
+            border: 1px solid #ffff00; /* 黄色の枠線 */
+            border-radius: 0; /* 角を丸めない */
+            padding: 0.125rem 0.25rem;
+            vertical-align: top;
+        }
+        th {
+            background-color: #222222;
+            color: #ff0000; /* thの文字色も赤に */
+        }
+        td {
+            background-color: #1a1a1a;
+            color: #ff0000; /* tdの文字色も赤に */
+        }
+
+        /* テーブル内の文字に歪みと文字間隔の狭小化を適用 */
+        .table-text {
+            letter-spacing: -0.05em; 
+            transform: scaleY(1.1); 
+            display: inline-block; 
+            transform-origin: bottom; 
+            font-weight: 700; /* Noto Serif JPのフォントを少し太くする */
+        }
+
+        /* テーブルの th, td 内のテキストすべてに適用 */
+        .table-text-container th, .table-text-container td {
+            font-weight: normal; /* 親要素のスタイルをリセットし、table-textに任せる */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 py-8">
+
+    <div class="bg-gray-800 p-8 md:p-12 rounded-2xl shadow-2xl w-full max-w-3xl text-center border">
+
+        <!-- テスト当日などのメッセージ欄 --><div id="message" class="mt-6 text-3xl font-bold"></div>
+        
+        <!-- メインカウントダウンとタイトルをまとめるグリッド --><div id="countdown-primary-container" class="mb-10 p-6 rounded-lg shadow-inner">
+            
+            <!-- タイトル: 余白を狭く (mb-3) --><h1 class="text-3xl md:text-4xl font-bold mb-3 evangelion-text">
+                <span id="main-title">2026年度 共通テストまで</span>
+            </h1>
+            
+            <!-- 「あと」: 余白を狭く (mb-1) --><p class="text-2xl md:text-3xl tracking-tight mb-1 evangelion-text countdown-unit">あと</p>
+            
+            <!-- 日数: 【修正点】サイズを大きく (text-9xl md:text-[10rem]) --><div id="days-display-wrapper" class="flex justify-center items-end mb-3">
+                <span id="days-display" class="text-9xl md:text-[10rem] countdown-number evangelion-text">
+                    <!-- JavaScriptで日数が挿入されます --><span class="loading-placeholder">...</span>
+                </span>
+                <span id="nichi" class="text-4xl md:text-5xl ml-2 countdown-unit evangelion-text">日</span>
+            </div>
+
+            <!-- 時・分・秒 (仕切り線はCSSで設定) --><div id="time-display" class="flex justify-center items-end mt-4">
+                <!-- 時間: 【修正点】サイズを大きく (text-7xl md:text-8xl) --><div class="mx-2">
+                    <span id="hours-display" class="countdown-number text-7xl md:text-8xl evangelion-text"><span class="loading-placeholder">--</span></span>
+                    <span class="text-2xl md:text-3xl ml-1 countdown-unit evangelion-text">時間</span>
+                </div>
+                
+                <!-- 分: 【修正点】サイズを大きく (text-7xl md:text-8xl) --><div class="mx-2">
+                    <span id="minutes-display" class="countdown-number text-7xl md:text-8xl evangelion-text"><span class="loading-placeholder">--</span></span>
+                    <span class="text-2xl md:text-3xl ml-1 countdown-unit evangelion-text">分</span>
+                </div>
+
+                <!-- 秒: 【修正点】サイズを大きく (text-7xl md:text-8xl) --><div class="mx-2">
+                    <!-- w-32で幅を固定し、桁変動によるガタツキを防ぐ --><span id="seconds-display" class="countdown-number text-7xl md:text-8xl w-32 inline-block text-right evangelion-text"><span class="loading-placeholder">--.-</span></span>
+                    <span class="text-2xl md:text-3xl ml-1 countdown-unit evangelion-text">秒</span>
+                </div>
+            </div>
+
+            <!-- 週数 (新要素) --><div id="weeks-display-wrapper" class="flex justify-center items-end">
+                <span id="weeks-display" class="countdown-number evangelion-text text-4xl md:text-5xl">
+                    <span class="loading-placeholder">--</span>
+                </span>
+                <span class="ml-2 countdown-unit evangelion-text text-xl md:text-2xl">週間</span>
+            </div>
+        </div>
+
+
+        <!-- 日程表 (プルダウン) --><div class="space-y-4 text-left mt-10">
+            
+            <!-- 1日目 --><details class="border shadow-lg transition-all duration-300">
+                <summary class="schedule-title p-4 cursor-pointer hover:bg-gray-700 list-none flex justify-between items-center">
+                    <span class="table-text">1日目 (2026年1月17日 土曜日)</span>
+                    <!-- 「+」記号を大きく、太く、色を変更 --><span class="text-xl font-bold transform transition-transform duration-200 open-marker">+</span>
+                </summary>
+                <div class="p-4 table-text-container">
+                    <!-- 1日目の日程表 --><table>
+                        <thead>
+                            <tr>
+                                <th><span class="table-text">出題教科</span></th>
+                                <th><span class="table-text">出題科目</span></th>
+                                <th><span class="table-text">試験時間 (開始‐終了)</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="table-text">地理歴史・公民</span></td>
+                                <td><span class="table-text">『地理B』『倫理、政治・経済』等 ※2科目選択</span></td>
+                                <td><span class="table-text">9:30 - 11:40 (130分)</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="table-text">地理歴史・公民</span></td>
+                                <td><span class="table-text">『地理B』『倫理』『政治・経済』等 ※1科目選択</span></td>
+                                <td><span class="table-text">10:40 - 11:40 (60分)</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="table-text">国語</span></td>
+                                <td><span class="table-text">『国語』</span></td>
+                                <td><span class="table-text">13:00 - 14:20 (80分)</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="table-text">外国語</span></td>
+                                <td><span class="table-text">『英語 (リーディング)』等</span></td>
+                                <td><span class="table-text">15:10 - 16:30 (80分)</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="table-text">外国語</span></td>
+                                <td><span class="table-text">『英語 (リスニング)』</span></td>
+                                <td><span class="table-text">17:10 - 18:10 (60分)</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+
+            <!-- 2日目 --><details class="border shadow-lg transition-all duration-300">
+                <summary class="schedule-title p-4 cursor-pointer hover:bg-gray-700 list-none flex justify-between items-center">
+                    <span class="table-text">2日目 (2026年1月18日 日曜日)</span>
+                    <!-- 「+」記号を大きく、太く、色を変更 --><span class="text-xl font-bold transform transition-transform duration-200 open-marker">+</span>
+                </summary>
+                <div class="p-4 table-text-container">
+                    <!-- 2日目の日程表 --><table>
+                        <thead>
+                            <tr>
+                                <th><span class="table-text">出題教科</span></th>
+                                <th><span class="table-text">出題科目</span></th>
+                                <th><span class="table-text">試験時間 (開始‐終了)</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="table-text">理科①</span></td>
+                                <td><span class="table-text">『物理基礎』『化学基礎』『生物基礎』『地学基礎』</span></td>
+                                <td><span class="table-text">9:30 - 10:30 (60分)</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="table-text">数学①</span></td>
+                                <td><span class="table-text">『数学I・数学A』</span></td>
+                                <td><span class="table-text">11:20 - 12:30 (70分)</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="table-text">数学②</span></td>
+                                <td><span class="table-text">『数学II・数学B』</span></td>
+                                <td><span class="table-text">13:50 - 14:50 (60分)</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="table-text">理科②</span></td>
+                                <td><span class="table-text">『物理』『化学』『生物』『『地学』 ※2科目選択</span></td>
+                                <td><span class="table-text">15:40 - 17:50 (130分)</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="table-text">理科②</span></td>
+                                <td><span class="table-text">『物理』『化学』『生物』『地学』 ※1科目選択</span></td>
+                                <td><span class="table-text">16:50 - 17:50 (60分)</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+
+        </div>
+        <div class="mt-8 text-sm text-center">
+            <a href="https://smhsdejiken.github.io/dejikenHP.github.io/GAMES-home.html" target="_blank" class="text-blue-400 hover:text-blue-300 underline font-normal transition duration-300">
+                🔗デジタル研究部
+            </a>
+        </div>
+    
+    <script>
+        // --- 設定 ---
+        // 2026年度共通テストの日付 (2026年1月17日 00:00:00 JST)
+        const targetDate = new Date('2026-01-17T09:30:00+09:00');
+        // ----------------
+
+        // HTML要素を取得
+        const daysDisplay = document.getElementById('days-display');
+        const hoursDisplay = document.getElementById('hours-display');
+        const minutesDisplay = document.getElementById('minutes-display');
+        const secondsDisplay = document.getElementById('seconds-display');
+        const weeksDisplay = document.getElementById('weeks-display'); // 新しい週数表示要素
+        const messageDisplay = document.getElementById('message');
+        const nichi = document.getElementById('nichi');
+        const loadingPlaceholders = document.querySelectorAll('.loading-placeholder');
+        const countdownPrimaryContainer = document.getElementById('countdown-primary-container'); // グリッドのID
+
+        function updateCountdown() {
+            const now = new Date();
+            const diff = targetDate.getTime() - now.getTime();
+
+            // 読み込み中表示を一度だけ削除
+            if (loadingPlaceholders.length > 0 && loadingPlaceholders[0].style.display !== 'none') {
+                loadingPlaceholders.forEach(el => el.style.display = 'none');
+            }
+
+            if (diff <= 1000 * 60 * 60 * 24) {
+                // 当日
+                daysDisplay.style.display = 'none'; // 日数カウントを非表示
+                nichi.style.display = 'none'; // 日を非表示
+                messageDisplay.textContent = '当日よ。乗りなさい。';
+                messageDisplay.style.paddingBottom = '4rem';
+            }
+
+            if (diff <= 0) {
+                // カウントダウン終了
+                countdownPrimaryContainer.style.display = 'none'; // グリッド全体を非表示
+                clearInterval(intervalId); // タイマーを停止
+                return;
+            }
+
+            // 1. 日・時間・分・秒（小数第一位）の計算
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            // 秒数を小数第一位まで計算
+            const seconds = (diff % (1000 * 60)) / 1000;
+            
+            // 2. 週数の計算 (7日で割る)
+            const weeks = Math.floor(days / 7);
+
+            // HTMLに表示
+            daysDisplay.textContent = days;
+            hoursDisplay.textContent = String(hours).padStart(2, '0');
+            minutesDisplay.textContent = String(minutes).padStart(2, '0');
+            // toFixed(1)で小数第一位まで取得し、padStartで 04.5 のように桁揃え
+            secondsDisplay.textContent = String(seconds.toFixed(1)).padStart(4, '0');
+            weeksDisplay.textContent = weeks.toFixed(1);
+        }
+
+        // 0.1秒ごと（100ミリ秒）に関数を実行
+        const intervalId = setInterval(updateCountdown, 100);
+
+        // ページ読み込み時に即時実行
+        updateCountdown();
+
+        // プルダウンのマーカー（＋/－）を制御する
+        document.querySelectorAll('details').forEach((detail) => {
+            detail.addEventListener('toggle', (event) => {
+                const marker = event.target.querySelector('summary .open-marker');
+                if (event.target.open) {
+                    marker.textContent = '−'; // 開いたとき
+                } else {
+                    marker.textContent = '+'; // 閉じたとき
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
